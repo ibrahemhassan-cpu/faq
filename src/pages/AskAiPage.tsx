@@ -4,9 +4,11 @@ import { AiResponseCard } from '@/components/ask-ai/AiResponseCard';
 import { MatchedFaqList } from '@/components/ask-ai/MatchedFaqList';
 import { QueryHistoryList } from '@/components/ask-ai/QueryHistoryList';
 import { useAskAi } from '@/hooks/useAskAi';
+import { useFaqs } from '@/hooks/useFaqs';
 
 export const AskAiPage: React.FC = () => {
   const { ask, isLoading, data: currentResponse, history, clearHistory } = useAskAi();
+  const { data: faqData } = useFaqs();
 
   const handleAsk = (
     query: string,
@@ -23,8 +25,8 @@ export const AskAiPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Search and Prompt Hero */}
-      <AskAiHero onAsk={handleAsk} isLoading={isLoading} />
+      {/* Search and Prompt Hero with real database FAQs */}
+      <AskAiHero onAsk={handleAsk} isLoading={isLoading} faqs={faqData?.faqs} />
 
       {/* Response and Retrieved Knowledge Context */}
       {currentResponse && (

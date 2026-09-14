@@ -11,7 +11,7 @@ import {
   Loader2,
   ArrowDown,
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FaqItem } from '@/types/faq';
@@ -154,9 +154,14 @@ export const FaqTable: React.FC<FaqTableProps> = ({
           return (
             <Card
               key={faq.id}
-              className="border-slate-200/80 bg-white shadow-2xs hover:border-slate-300 transition-all"
+              className="border-slate-200/80 bg-white shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all overflow-hidden"
             >
-              <CardContent className="p-4 sm:p-5">
+              {/* Entire top tab / row is clickable to open/close accordion */}
+              <div
+                onClick={() => toggleExpand(faq.id)}
+                className="p-4 sm:p-5 cursor-pointer select-none hover:bg-slate-50/60 transition-colors"
+                title="Click anywhere to toggle full answer"
+              >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   {/* FAQ Details */}
                   <div className="flex-1 space-y-2">
@@ -198,10 +203,7 @@ export const FaqTable: React.FC<FaqTableProps> = ({
                       </span>
                     </div>
 
-                    <h3
-                      onClick={() => toggleExpand(faq.id)}
-                      className="text-base font-bold text-slate-900 cursor-pointer hover:text-blue-600 transition-colors"
-                    >
+                    <h3 className="text-base font-bold text-slate-900 hover:text-blue-600 transition-colors">
                       {faq.question}
                     </h3>
 
@@ -229,8 +231,11 @@ export const FaqTable: React.FC<FaqTableProps> = ({
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center space-x-1 shrink-0 self-end sm:self-start">
+                  {/* Actions (with e.stopPropagation) */}
+                  <div
+                    className="flex items-center space-x-1 shrink-0 self-end sm:self-start"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Button
                       variant="ghost"
                       size="sm"
@@ -248,7 +253,10 @@ export const FaqTable: React.FC<FaqTableProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onEdit(faq)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(faq);
+                      }}
                       className="h-8 px-2 text-slate-600 hover:text-blue-600"
                       title="Edit FAQ"
                     >
@@ -258,7 +266,10 @@ export const FaqTable: React.FC<FaqTableProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onDelete(faq)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(faq);
+                      }}
                       className="h-8 px-2 text-slate-400 hover:text-red-600"
                       title="Delete FAQ"
                     >
@@ -266,7 +277,7 @@ export const FaqTable: React.FC<FaqTableProps> = ({
                     </Button>
                   </div>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           );
         })}

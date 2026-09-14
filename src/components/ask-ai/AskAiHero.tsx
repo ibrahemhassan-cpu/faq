@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Search, Sparkles, SlidersHorizontal, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Search, Sparkles, SlidersHorizontal, ArrowRight, Loader2, ShieldCheck, Shuffle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchSettingsModal } from './SearchSettingsModal';
+import { FaqItem } from '@/types/faq';
 
 interface AskAiHeroProps {
   onAsk: (
@@ -15,24 +16,57 @@ interface AskAiHeroProps {
     }
   ) => void;
   isLoading: boolean;
+  faqs?: FaqItem[];
 }
 
-const SAMPLE_QUESTIONS = [
-  { text: "How much does it cost?", label: "Pricing" },
-  { text: "Can I get my money back if I cancel?", label: "Refunds" },
-  { text: "Where do I turn on 2FA security?", label: "Security" },
-  { text: "كم تكلفة الاشتراك وما هي الخطط المتاحة؟", label: "أسعار (عربي)" },
-  { text: "كيف يمكنني استعادة كلمة المرور؟", label: "استعادة (عربي)" },
-  { text: "What is the secret recipe for Italian pizza?", label: "Anti-Hallucination 🛡️" },
-];
-
-export const AskAiHero: React.FC<AskAiHeroProps> = ({ onAsk, isLoading }) => {
+export const AskAiHero: React.FC<AskAiHeroProps> = ({ onAsk, isLoading, faqs }) => {
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedModel, setSelectedModel] = useState('gemini-flash-lite-latest');
   const [threshold, setThreshold] = useState(0.70); // Strictly 70% default
   const [matchCount, setMatchCount] = useState(4);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [shuffleOffset, setShuffleOffset] = useState(0);
+
+  // Dynamically derive real sample questions directly from the actual database
+  const suggestedQuestions = useMemo(() => {
+    if (!faqs || faqs.length === 0) {
+      return [
+        { text: "What are your subscription pricing plans?", category: "Billing" },
+        { text: "What is your refund and cancellation policy?", category: "Billing" },
+        { text: "How do I enable Two-Factor Authentication (2FA)?", category: "Security" },
+        { text: "ما هي خطط وباقات الأسعار المتاحة لديكم؟", category: "باقات" },
+        { text: "ما هي سياسة الاسترجاع واسترداد الأموال وإلغاء الاشتراك؟", category: "استرجاع" },
+        { text: "كيف يمكنني استعادة أو تغيير كلمة مرور حسابي؟", category: "أمان" },
+      ];
+    }
+
+    const published = faqs.filter((f) => f.is_published);
+    const arFaqs = published.filter(
+      (f) => f.language === 'ar' || /[\u0600-\u06FF]/.test(f.question)
+    );
+    const enFaqs = published.filter(
+      (f) => f.language === 'en' || !/[\u0600-\u06FF]/.test(f.question)
+    );
+
+    const getSample = (list: FaqItem[], count: number, offset: number) => {
+      if (list.length === 0) return [];
+      const res = [];
+      for (let i = 0; i < Math.min(count, list.length); i++) {
+        const idx = (i + offset) % list.length;
+        res.push({
+          text: list[idx].question,
+          category: list[idx].category,
+        });
+      }
+      return res;
+    };
+
+    const sampleEn = getSample(enFaqs, 3, shuffleOffset * 3);
+    const sampleAr = getSample(arFaqs, 3, shuffleOffset * 3);
+
+    return [...sampleEn, ...sampleAr];
+  }, [faqs, shuffleOffset]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,18 +187,43 @@ export const AskAiHero: React.FC<AskAiHeroProps> = ({ onAsk, isLoading }) => {
         </button>
       </div>
 
-      {/* Suggested Questions Pills */}
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-        <span className="text-xs text-slate-400 font-medium mr-1">Try asking:</span>
-        {SAMPLE_QUESTIONS.map((q, idx) => (
+      {/* Suggested Questions: Drawn Dynamically from Database */}
+      <div className="mt-5 space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs text-slate-400 font-medium">
+            Try asking (from your live knowledge base • من قاعدة أسئلتك):
+          </span>
           <button
-            key={idx}
-            onClick={() => handleSelectSample(q.text)}
-            className="text-xs bg-white hover:bg-blue-50/80 text-slate-600 hover:text-blue-700 border border-slate-200 hover:border-blue-200 px-3 py-1.5 rounded-full transition-colors shadow-2xs"
+            type="button"
+            onClick={() => setShuffleOffset((prev) => prev + 1)}
+            className="inline-flex items-center space-x-1 text-[11px] text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            title="Show other questions from your database"
           >
-            {q.text}
+            <Shuffle className="h-3 w-3" />
+            <span>Shuffle / أسئلة أخرى</span>
           </button>
-        ))}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {suggestedQuestions.map((q, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleSelectSample(q.text)}
+              className="text-xs bg-white hover:bg-blue-50/80 text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-300 px-3 py-1.5 rounded-xl transition-all shadow-2xs text-left"
+            >
+              {q.text}
+            </button>
+          ))}
+
+          {/* Explicit Anti-Hallucination Guardrail Test */}
+          <button
+            onClick={() => handleSelectSample("What is the secret recipe for Italian pizza?")}
+            className="text-xs bg-amber-50/70 hover:bg-amber-100/80 text-amber-800 border border-amber-200 px-3 py-1.5 rounded-xl transition-all shadow-2xs font-medium"
+            title="Test out-of-scope query to verify 70% threshold refusal"
+          >
+            🛡️ Out-of-Scope Test: "Recipe for Italian pizza"
+          </button>
+        </div>
       </div>
 
       {/* Settings Modal */}
