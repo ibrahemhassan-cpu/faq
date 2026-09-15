@@ -121,12 +121,12 @@ export const FaqTable: React.FC<FaqTableProps> = ({
     <div className="space-y-4">
       {/* Showing X of Y Counter & Progress Bar */}
       <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 min-w-0">
             <span className="font-bold text-slate-900">
               Showing {displayedCount} of {totalCount} FAQs
             </span>
-            <span className="text-slate-400">•</span>
+            <span className="hidden sm:inline text-slate-400">•</span>
             <span className="text-slate-500">
               (عرض {displayedCount} من إجمالي {totalCount} سؤال)
             </span>
@@ -159,13 +159,13 @@ export const FaqTable: React.FC<FaqTableProps> = ({
               {/* Entire top tab / row is clickable to open/close accordion */}
               <div
                 onClick={() => toggleExpand(faq.id)}
-                className="p-4 sm:p-5 cursor-pointer select-none hover:bg-slate-50/60 transition-colors"
+                className="p-3.5 sm:p-5 cursor-pointer select-none hover:bg-slate-50/60 transition-colors"
                 title="Click anywhere to toggle full answer"
               >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
                   {/* FAQ Details */}
-                  <div className="flex-1 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                       <span className="text-xs font-mono font-semibold text-slate-400">
                         #{idx + 1}
                       </span>
@@ -203,12 +203,13 @@ export const FaqTable: React.FC<FaqTableProps> = ({
                       </span>
                     </div>
 
-                    <h3 className="text-base font-bold text-slate-900 hover:text-blue-600 transition-colors">
+                    <h3 dir="auto" className="text-sm sm:text-base font-bold text-slate-900 hover:text-blue-600 transition-colors break-words">
                       {faq.question}
                     </h3>
 
                     <p
-                      className={`text-sm text-slate-600 leading-relaxed whitespace-pre-line ${
+                      dir="auto"
+                      className={`text-sm text-slate-600 leading-relaxed whitespace-pre-line break-words ${
                         isExpanded ? '' : 'line-clamp-2'
                       }`}
                     >

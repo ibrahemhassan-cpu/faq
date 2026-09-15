@@ -9,15 +9,26 @@ import {
   ThumbsDown,
   ShieldCheck,
   HelpCircle,
+  Brain,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AskAiResponse } from '@/types/search';
+import { useRevealText } from '@/hooks/useTypewriter';
+import { Caret } from '@/components/common/Motion';
 
 interface AiResponseCardProps {
   response: AskAiResponse;
 }
+
+const CONFIDENCE_LABELS: Record<AskAiResponse['confidence'], string> = {
+  high: 'High confidence',
+  medium: 'Medium confidence',
+  low: 'Low confidence',
+};
+
+const ARABIC_SCRIPT = /[؀-ۿ]/;
 
 export const AiResponseCard: React.FC<AiResponseCardProps> = ({ response }) => {
   const [copied, setCopied] = useState(false);
@@ -29,7 +40,9 @@ export const AiResponseCard: React.FC<AiResponseCardProps> = ({ response }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isArabic = /[\u0600-\u06FF]/.test(response.answer);
+  const isArabic = ARABIC_SCRIPT.test(response.answer);
+  // The answer appears as if it is being typed; clicking it shows the rest immediately.
+  const answerReveal = useRevealText(response.answer);
 
   return (
     <Card className="border-blue-100 shadow-md bg-gradient-to-b from-white to-slate-50/50 overflow-hidden">
@@ -42,7 +55,7 @@ export const AiResponseCard: React.FC<AiResponseCardProps> = ({ response }) => {
             <CardTitle className="text-base text-slate-900 font-bold">
               AI Generated Response
             </CardTitle>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 break-words" dir="auto">
               Query: &ldquo;{response.query}&rdquo;
             </p>
           </div>
@@ -51,13 +64,16 @@ export const AiResponseCard: React.FC<AiResponseCardProps> = ({ response }) => {
         {/* Verification Badges */}
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="font-mono text-[11px] text-blue-700 bg-blue-50/50 border-blue-200">
-            {response.modelUsed || 'gemini-flash-lite'}
+            {response.modelUsed}
           </Badge>
 
           {response.hasRelevantMatch ? (
-            <Badge variant="success" className="flex items-center space-x-1 py-1">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Grounded on FAQ ({Math.round(response.highestSimilarity * 100)}% match)</span>
+            <Badge
+              variant={response.confidence === 'low' ? 'warning' : 'success'}
+              className="flex items-center space-x-1 py-1"
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>Grounded on FAQ • {CONFIDENCE_LABELS[response.confidence]}</span>
             </Badge>
           ) : (
             <Badge variant="warning" className="flex items-center space-x-1 py-1">
@@ -74,6 +90,20 @@ export const AiResponseCard: React.FC<AiResponseCardProps> = ({ response }) => {
       </CardHeader>
 
       <CardContent className="pt-5 space-y-4">
+        {/* What the AI understood the customer needs */}
+        {response.intent && (
+          <div
+            dir={ARABIC_SCRIPT.test(response.intent) ? 'rtl' : 'ltr'}
+            className="flex items-start gap-2 rounded-lg bg-indigo-50/70 border border-indigo-100 px-3 py-2 text-xs text-indigo-900"
+          >
+            <Brain className="h-3.5 w-3.5 shrink-0 mt-0.5 text-indigo-600" />
+            <span>
+              <span className="font-semibold">{ARABIC_SCRIPT.test(response.intent) ? 'فهمت إنك محتاج: ' : 'Understood need: '}</span>
+              {response.intent}
+            </span>
+          </div>
+        )}
+
         {/* Answer Text */}
         <div
           dir={isArabic ? 'rtl' : 'ltr'}
@@ -81,8 +111,21 @@ export const AiResponseCard: React.FC<AiResponseCardProps> = ({ response }) => {
             isArabic ? 'text-right font-sans' : 'text-left'
           }`}
         >
-          {response.answer}
+          <span onClick={answerReveal.skip} className={answerReveal.isRevealing ? 'cursor-pointer' : undefined}>
+            {answerReveal.visible}
+          </span>
+          {answerReveal.isRevealing && <Caret className="text-blue-500" />}
         </div>
+
+        {response.followUpQuestion && !answerReveal.isRevealing && (
+          <div
+            dir={ARABIC_SCRIPT.test(response.followUpQuestion) ? 'rtl' : 'ltr'}
+            className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900 animate-fade-in-up"
+          >
+            <HelpCircle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-600" />
+            <span>{response.followUpQuestion}</span>
+          </div>
+        )}
 
         {/* Card Footer Actions & Feedback */}
         <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
@@ -109,7 +152,7 @@ export const AiResponseCard: React.FC<AiResponseCardProps> = ({ response }) => {
             <span className="flex items-center space-x-1">
               <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
               <span>
-                {response.sources.length} matching knowledge {response.sources.length === 1 ? 'source' : 'sources'} retrieved
+                {response.sources.length} of {response.faqsConsidered} FAQs selected
               </span>
             </span>
           </div>

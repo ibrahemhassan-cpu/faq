@@ -1,9 +1,27 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { FaqItem, FaqCreateInput, FaqUpdateInput, FaqStats } from '@/types/faq';
-import { generateEmbedding } from './embeddingService';
 import { INITIAL_FAQS } from '@/data/initialFaqs';
+import { callFaqAi } from './aiClient';
 
 const LOCAL_STORAGE_KEY = 'faq_ai_poc_local_faqs';
+
+function textForEmbedding(item: { question: string; answer: string; tags?: string[] }): string {
+  return `${item.question}\n${item.answer}\nTags: ${(item.tags || []).join(', ')}`;
+}
+
+/**
+ * Embeddings are stored so pgvector can pre-filter very large knowledge bases.
+ * A failure must not block saving an FAQ, and must never store a fake vector.
+ */
+async function embedFaqTexts(texts: string[]): Promise<(number[] | null)[]> {
+  try {
+    const { embeddings } = await callFaqAi<{ embeddings: number[][] }>('embed', { texts });
+    return embeddings;
+  } catch (error) {
+    console.warn('[FaqService] Embedding failed, saving without a vector:', error);
+    return texts.map(() => null);
+  }
+}
 
 // In-memory / LocalStorage cache fallback if Supabase is offline or table uninitialized
 function getLocalFaqs(): FaqItem[] {
@@ -111,9 +129,7 @@ function filterLocalFaqs(params?: { category?: string; search?: string }): FaqIt
  * Creates a new FAQ item and generates its vector embedding.
  */
 export async function createFaq(input: FaqCreateInput): Promise<FaqItem> {
-  // Generate vector embedding for question + answer
-  const textToEmbed = `${input.question}\n${input.answer}\nTags: ${input.tags.join(', ')}`;
-  const embedding = input.embedding || (await generateEmbedding(textToEmbed));
+  const embedding = input.embedding || (await embedFaqTexts([textForEmbedding(input)]))[0];
 
   const newRecord = {
     question: input.question,
@@ -155,15 +171,57 @@ export async function createFaq(input: FaqCreateInput): Promise<FaqItem> {
 }
 
 /**
+ * Creates many FAQs at once (e.g. from a document import): embeds in batches, inserts in one request.
+ */
+export async function createFaqsBulk(
+  inputs: FaqCreateInput[],
+  onProgress?: (done: number, total: number) => void
+): Promise<number> {
+  const embeddings: (number[] | null)[] = [];
+  for (let i = 0; i < inputs.length; i += 100) {
+    onProgress?.(i, inputs.length);
+    embeddings.push(...(await embedFaqTexts(inputs.slice(i, i + 100).map(textForEmbedding))));
+  }
+  onProgress?.(inputs.length, inputs.length);
+
+  const records = inputs.map((input, i) => ({
+    question: input.question,
+    answer: input.answer,
+    category: input.category || 'General',
+    tags: input.tags || [],
+    embedding: embeddings[i],
+    is_published: input.is_published ?? true,
+    metadata: input.metadata || {},
+  }));
+
+  if (isSupabaseConfigured) {
+    const { error } = await supabase.from('faqs').insert(records);
+    if (error) {
+      throw new Error(`Could not save the FAQs: ${error.message}`);
+    }
+    return records.length;
+  }
+
+  const now = new Date().toISOString();
+  const localItems: FaqItem[] = records.map((record, i) => ({
+    ...record,
+    id: `local-import-${Date.now()}-${i}`,
+    created_at: now,
+    updated_at: now,
+  }));
+  saveLocalFaqs([...localItems, ...getLocalFaqs()]);
+  return localItems.length;
+}
+
+/**
  * Updates an existing FAQ. If question or answer changed, re-computes the embedding.
  */
 export async function updateFaq(id: string, input: FaqUpdateInput): Promise<FaqItem> {
   let embedding = input.embedding;
 
   // If question or answer was updated, regenerate embedding
-  if (embedding === undefined && (input.question || input.answer)) {
-    const textToEmbed = `${input.question || ''}\n${input.answer || ''}\nTags: ${(input.tags || []).join(', ')}`;
-    embedding = await generateEmbedding(textToEmbed);
+  if (embedding === undefined && input.question && input.answer) {
+    embedding = (await embedFaqTexts([textForEmbedding({ ...input, question: input.question, answer: input.answer })]))[0];
   }
 
   const payload: any = {
@@ -231,26 +289,18 @@ export async function seedInitialFaqs(onProgress?: (current: number, total: numb
   const total = INITIAL_FAQS.length;
   let seededCount = 0;
 
-  const itemsToInsert: any[] = [];
+  onProgress?.(0, total);
+  const embeddings = await embedFaqTexts(INITIAL_FAQS.map(textForEmbedding));
 
-  for (let i = 0; i < total; i++) {
-    const item = INITIAL_FAQS[i];
-    const textToEmbed = `${item.question}\n${item.answer}\nTags: ${item.tags.join(', ')}`;
-    const embedding = await generateEmbedding(textToEmbed);
-
-    itemsToInsert.push({
-      ...item,
-      embedding,
-      is_published: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
-
-    seededCount++;
-    if (onProgress) {
-      onProgress(seededCount, total);
-    }
-  }
+  const itemsToInsert: any[] = INITIAL_FAQS.map((item, i) => ({
+    ...item,
+    embedding: embeddings[i],
+    is_published: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }));
+  seededCount = total;
+  onProgress?.(seededCount, total);
 
   if (isSupabaseConfigured) {
     try {

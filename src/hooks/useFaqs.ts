@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getFaqs,
   createFaq,
+  createFaqsBulk,
   updateFaq,
   deleteFaq,
   seedInitialFaqs,
@@ -73,6 +74,22 @@ export function useDeleteFaq() {
 
   return useMutation({
     mutationFn: (id: string) => deleteFaq(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FAQS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: FAQ_STATS_QUERY_KEY });
+    },
+  });
+}
+
+/**
+ * Hook to add many FAQs at once (document import).
+ */
+export function useBulkCreateFaqs() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ inputs, onProgress }: { inputs: FaqCreateInput[]; onProgress?: (done: number, total: number) => void }) =>
+      createFaqsBulk(inputs, onProgress),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FAQS_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: FAQ_STATS_QUERY_KEY });

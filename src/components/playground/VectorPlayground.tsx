@@ -1,63 +1,60 @@
 import React, { useState } from 'react';
-import { Layers, Search, Zap, ArrowRight, Loader2, Sparkles, Cpu } from 'lucide-react';
+import { Layers, Search, Zap, ArrowRight, Loader2, Sparkles, Brain } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { searchFaqsSemantically } from '@/services/searchService';
-import { MatchedFaq } from '@/types/search';
+import { askAiWithKnowledgeBase } from '@/services/aiService';
+import { AskAiResponse, MatchRelevance } from '@/types/search';
 
 const PRESET_PARAPHRASES = [
   {
-    original: "What are your subscription pricing plans?",
-    variations: [
-      "How much does it cost?",
-      "What are the fees for your tool?",
-      "Can you give me the pricing breakdown?",
-      "كم تكلفة الخدمة وما هي الأسعار؟",
-    ],
-  },
-  {
     original: "What is your refund and cancellation policy?",
     variations: [
-      "Can I get my money back?",
-      "If I don't like it, do I get a refund?",
-      "How do I cancel my account and get refunded?",
-      "هل يمكن استرداد أموالي إذا ألغيت الاشتراك؟",
+      "I bought a plan by mistake yesterday",
+      "الحاجات اللي جبتها بايظة أعمل ايه؟",
+      "3ayez flousy tany",
+      "بيخصم مني فلوس كل شهر ومش عايز الخدمة دي",
     ],
   },
   {
-    original: "How do I enable Two-Factor Authentication (2FA)?",
+    original: "How do I reset my account password?",
     variations: [
-      "How to turn on 2FA security?",
-      "Where do I set up authenticator app codes?",
-      "How to protect my login with OTP?",
-      "كيف أفعل التحقق بخطوتين لحسابي؟",
+      "I'm locked out and can't remember anything",
+      "مش عارف ادخل على حسابي خالص",
+      "nesit el password",
+    ],
+  },
+  {
+    original: "Can I connect the FAQ knowledge base to Slack or Microsoft Teams?",
+    variations: [
+      "can our company chat bot answer from this",
+      "عايز الموظفين يسألوا البوت جوه الشات بتاعنا",
     ],
   },
 ];
 
+const RELEVANCE_COLORS: Record<MatchRelevance, string> = {
+  direct: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+  partial: 'text-blue-700 bg-blue-50 border-blue-100',
+  related: 'text-slate-600 bg-slate-50 border-slate-200',
+};
+
 export const VectorPlayground: React.FC = () => {
-  const [testQuery, setTestQuery] = useState('How much does it cost?');
-  const [matches, setMatches] = useState<MatchedFaq[]>([]);
-  const [latency, setLatency] = useState<number>(0);
+  const [testQuery, setTestQuery] = useState("I bought a plan by mistake yesterday");
+  const [result, setResult] = useState<AskAiResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [hasSearched, setHasSearched] = useState<boolean>(false);
 
   const handleRunTest = async (queryToTest: string) => {
     if (!queryToTest.trim() || isLoading) return;
     setIsLoading(true);
-    setHasSearched(true);
+    setError(null);
     try {
-      const res = await searchFaqsSemantically({
-        query: queryToTest.trim(),
-        matchThreshold: 0.30, // Lower threshold to visualize ranking differences
-        matchCount: 6,
-      });
-      setMatches(res.matches);
-      setLatency(res.executionTimeMs);
+      setResult(await askAiWithKnowledgeBase({ query: queryToTest.trim() }));
     } catch (err) {
-      console.error('Vector test failed', err);
+      setResult(null);
+      setError(err instanceof Error ? err.message : 'Match test failed');
     } finally {
       setIsLoading(false);
     }
@@ -69,13 +66,13 @@ export const VectorPlayground: React.FC = () => {
       <div className="text-center space-y-2">
         <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100">
           <Layers className="h-3.5 w-3.5 text-purple-600" />
-          <span>pgvector Cosine Similarity Inspector</span>
+          <span>AI Match Inspector</span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
-          Semantic Search & Paraphrase Testing
+          How Well Does the AI Understand Customers?
         </h2>
         <p className="text-slate-600 text-sm max-w-2xl mx-auto">
-          Test how different user phrasings, synonyms, and languages map to the exact same FAQ template via 768-dimensional vector embeddings without requiring keyword matches!
+          Test indirect phrasings, slang, dialects, and Franco-Arabic. See what the AI understood, which FAQs it picked, and why, with no shared keywords required.
         </p>
       </div>
 
@@ -84,7 +81,7 @@ export const VectorPlayground: React.FC = () => {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center space-x-1.5 text-slate-800">
             <Sparkles className="h-4 w-4 text-purple-600" />
-            <span>Click any paraphrase to test real-time vector matching:</span>
+            <span>Click any phrasing to test it:</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -92,7 +89,7 @@ export const VectorPlayground: React.FC = () => {
             <div key={gIdx} className="space-y-1.5 bg-slate-50/80 p-3 rounded-xl border border-slate-100">
               <div className="text-xs font-semibold text-slate-700 flex items-center space-x-1.5">
                 <span className="h-2 w-2 rounded-full bg-blue-500" />
-                <span>Canonical FAQ: &ldquo;{group.original}&rdquo;</span>
+                <span>Expected FAQ: &ldquo;{group.original}&rdquo;</span>
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
                 {group.variations.map((v, vIdx) => (
@@ -136,87 +133,71 @@ export const VectorPlayground: React.FC = () => {
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  <span>Computing Vectors...</span>
+                  <span>Reading FAQs...</span>
                 </>
               ) : (
                 <>
                   <Zap className="h-4 w-4 mr-1.5" />
-                  <span>Inspect Similarity</span>
+                  <span>Inspect Match</span>
                 </>
               )}
             </Button>
           </div>
 
+          {error && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+          )}
+
           {/* Results Display */}
-          {hasSearched && (
+          {result && (
             <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center space-x-2 text-xs font-semibold text-slate-700">
-                  <Cpu className="h-4 w-4 text-purple-600" />
-                  <span>Vector Match Results ({matches.length})</span>
+                  <Brain className="h-4 w-4 text-purple-600" />
+                  <span>
+                    {result.sources.length} of {result.faqsConsidered} FAQs selected • {result.confidence} confidence
+                  </span>
                 </div>
-                <Badge variant="secondary" className="font-mono text-xs">
-                  {latency}ms
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="font-mono text-xs">{result.modelUsed}</Badge>
+                  <Badge variant="secondary" className="font-mono text-xs">{result.latencyMs}ms</Badge>
+                </div>
               </div>
 
-              {matches.length === 0 ? (
+              {result.intent && (
+                <p dir="auto" className="text-xs text-indigo-900 bg-indigo-50/70 border border-indigo-100 rounded-lg px-3 py-2">
+                  {result.intent}
+                </p>
+              )}
+
+              {result.sources.length === 0 ? (
                 <p className="text-xs text-slate-500 text-center py-6">
-                  No matching FAQs found for this query above the 30% baseline.
+                  The AI found no FAQ that helps with this message.
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {matches.map((item, idx) => {
-                    const pct = Math.round(item.similarity * 100);
-                    const isHighConfidence = pct >= 65;
-
-                    return (
-                      <div
-                        key={item.id}
-                        className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2 hover:bg-slate-50 transition-colors"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs font-bold text-slate-400">
-                              #{idx + 1}
-                            </span>
-                            <Badge variant="outline" className="text-[11px]">
-                              {item.category}
-                            </Badge>
-                            <h4 className="text-xs sm:text-sm font-semibold text-slate-900">
-                              {item.question}
-                            </h4>
-                          </div>
-
-                          <div className="flex items-center space-x-1.5 shrink-0">
-                            <span
-                              className={`text-xs font-mono font-bold ${
-                                isHighConfidence ? 'text-emerald-600' : 'text-slate-600'
-                              }`}
-                            >
-                              {pct}%
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Visual Similarity Progress Bar */}
-                        <div className="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              isHighConfidence
-                                ? 'bg-gradient-to-r from-blue-500 to-emerald-500'
-                                : 'bg-slate-400'
-                            }`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-
-                        <p className="text-xs text-slate-500 line-clamp-1">
-                          {item.answer}
-                        </p>
+                  {result.sources.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-1.5 hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-bold text-slate-400">#{idx + 1}</span>
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${RELEVANCE_COLORS[item.relevance]}`}>
+                          {item.relevance}
+                        </span>
+                        <Badge variant="outline" className="text-[11px]">
+                          {item.category}
+                        </Badge>
+                        <h4 dir="auto" className="text-xs sm:text-sm font-semibold text-slate-900">
+                          {item.question}
+                        </h4>
                       </div>
-                    );
-                  })}
+                      {item.reason && (
+                        <p dir="auto" className="text-xs text-slate-500">{item.reason}</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

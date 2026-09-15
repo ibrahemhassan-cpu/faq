@@ -1,0 +1,16 @@
+[llm] openrouter/nvidia/nemotron-3-super-120b-a12b:free failed: Empty completion
+[llm] openrouter/nvidia/nemotron-3-ultra-550b-a55b failed: HTTP 429: {"error":{"message":"Provider returned error","code":429,"metadata":{"raw":"nvidia/nemotron-3-ultra-550b-a55b is temporarily rate-limited upstream. Please retry shortly, or add your own key 
+FAIL   4275ms (fallback→gemini-flash-lite-latest) [wrong FAQ] | الحاجات اللي جبتها بايظة أعمل ايه؟ → SHIP,SUPPORT | considered=46
+[llm] openrouter/nvidia/nemotron-3-super-120b-a12b:free failed: Empty completion
+[llm] openrouter/nvidia/nemotron-3-ultra-550b-a55b failed: HTTP 429: {"error":{"message":"Provider returned error","code":429,"metadata":{"raw":"nvidia/nemotron-3-ultra-550b-a55b is temporarily rate-limited upstream. Please retry shortly, or add your own key 
+FAIL   5920ms (fallback→gemini-flash-lite-latest) [wrong FAQ] | الطلب وصلني مكسور → SUPPORT,SHIP | considered=46
+[llm] openrouter/nvidia/nemotron-3-super-120b-a12b:free failed: Empty completion
+FAIL   8721ms (fallback→nvidia/nemotron-3-ultra-550b-a55b) | 3ayez flousy tany → REFUND,REFUND,SUPPORT,SUPPORT | considered=46
+[llm] openrouter/nvidia/nemotron-3-super-120b-a12b:free failed: Empty completion
+FAIL   7713ms (fallback→nvidia/nemotron-3-ultra-550b-a55b) | بيخصم مني فلوس كل شهر ومش عايز الخدمة دي → REFUND,REFUND,OTHER,OTHER,SUPPORT | considered=46
+[llm] openrouter/nvidia/nemotron-3-super-120b-a12b:free failed: Empty completion
+FAIL   5630ms (fallback→nvidia/nemotron-3-ultra-550b-a55b) | مش عارف ادخل على حسابي خالص → PASS,OTHER,SUPPORT | considered=46
+PASS  18781ms | nesit el password → PASS | considered=46
+PASS  11975ms | الأوردر اتأخر ومجاش لحد دلوقتي → SHIP,SUPPORT | considered=46
+PASS  12760ms | عايز اضيف زمايلي في الشغل معايا → INVITE | considered=46
+[llm] openrouter/nvidia/nemotron-3-super-120b-a12b:free failed: Empty completion

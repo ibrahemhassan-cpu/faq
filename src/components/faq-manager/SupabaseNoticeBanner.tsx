@@ -19,12 +19,12 @@ export const SupabaseNoticeBanner: React.FC = () => {
   return (
     <div className="relative rounded-xl border border-blue-200 bg-blue-50/70 p-4 text-xs text-blue-900 shadow-2xs">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start space-x-3">
-          <div className="h-8 w-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="hidden sm:flex h-8 w-8 rounded-lg bg-blue-600 text-white items-center justify-center shrink-0 mt-0.5">
             <Database className="h-4 w-4" />
           </div>
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
+          <div className="space-y-1 min-w-0 break-words">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="font-semibold text-blue-950 text-sm">
                 Supabase pgvector Database Integration Active
               </span>
@@ -59,7 +59,7 @@ export const SupabaseNoticeBanner: React.FC = () => {
                 ) : (
                   <>
                     <Copy className="h-3 w-3 mr-1" />
-                    <span>Copy Migration Path ({sqlScriptPath})</span>
+                    <span>Copy Migration Path<span className="hidden md:inline"> ({sqlScriptPath})</span></span>
                   </>
                 )}
               </Button>
@@ -69,7 +69,7 @@ export const SupabaseNoticeBanner: React.FC = () => {
 
         <button
           onClick={() => setDismissed(true)}
-          className="text-blue-400 hover:text-blue-700 p-1"
+          className="text-blue-400 hover:text-blue-700 p-1 shrink-0"
           title="Dismiss"
         >
           <X className="h-4 w-4" />

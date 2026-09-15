@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Loader2, Wand2, CheckCircle2, Languages } from 'lucide-react';
 import {
   Dialog,
@@ -12,6 +12,23 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { FaqItem, FaqCreateInput, FAQ_CATEGORIES } from '@/types/faq';
 import { generateFaqWithAi } from '@/services/aiService';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import { VoiceRecordButton } from '@/components/common/VoiceRecordButton';
+import { Caret, InputOverlay, SoundBars, TypewriterPlaceholder } from '@/components/common/Motion';
+import { usePrefersReducedMotion } from '@/hooks/useTypewriter';
+
+const AR_TOPIC_EXAMPLES = [
+  'اكتب الفكرة أو دوس على المايك واتكلم...',
+  'سياسة استرجاع المنتجات التالفة خلال 14 يوم',
+  'إزاي العميل يغير الباقة بتاعته',
+  'مواعيد التوصيل للمحافظات',
+];
+const EN_TOPIC_EXAMPLES = [
+  'Type a topic or tap the mic and speak...',
+  'Refund policy for damaged goods within 14 days',
+  'How customers can change their plan',
+  'API rate limits per plan',
+];
 
 interface FaqFormModalProps {
   isOpen: boolean;
@@ -40,8 +57,57 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiSuccessMessage, setAiSuccessMessage] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  // Describe the FAQ by voice: the transcript fills the topic box and generation starts.
+  const voice = useVoiceRecorder((transcript) => {
+    setAiPrompt(transcript);
+    void generateFromTopic(transcript);
+  });
+  const isVoiceBusy = voice.status !== 'idle';
+
+  const [isTypingFill, setIsTypingFill] = useState(false);
+  const typingTimerRef = useRef<number | null>(null);
+  const generationIdRef = useRef(0);
+  const reducedMotion = usePrefersReducedMotion();
+
+  const stopTyping = () => {
+    if (typingTimerRef.current !== null) window.clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = null;
+    setIsTypingFill(false);
+  };
+
+  const typeInto = (text: string, setValue: (value: string) => void) =>
+    new Promise<void>((resolve) => {
+      if (reducedMotion) {
+        setValue(text);
+        resolve();
+        return;
+      }
+      const tokens = text.split(/(\s+)/);
+      let shown = 0;
+      const tick = () => {
+        shown += 2;
+        setValue(tokens.slice(0, shown).join(''));
+        if (shown >= tokens.length) {
+          typingTimerRef.current = null;
+          resolve();
+        } else {
+          typingTimerRef.current = window.setTimeout(tick, 35);
+        }
+      };
+      tick();
+    });
+
+  const topicPlaceholders = language === 'ar' ? AR_TOPIC_EXAMPLES : EN_TOPIC_EXAMPLES;
 
   useEffect(() => {
+    setAiError(null);
+    // Abandon any generation still running for the previous open/record.
+    generationIdRef.current += 1;
+    stopTyping();
+    setIsGeneratingAi(false);
+    if (!isOpen) voice.cancel();
     if (initialData) {
       setLanguage(initialData.language || 'en');
       setQuestion(initialData.question);
@@ -71,16 +137,27 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
     }
   }, [initialData, isOpen]);
 
-  const handleGenerateWithAi = async () => {
-    if (!aiPrompt.trim() || isGeneratingAi) return;
+  const handleGenerateWithAi = () => generateFromTopic(aiPrompt);
+
+  const generateFromTopic = async (topic: string) => {
+    if (!topic.trim() || isGeneratingAi) return;
+    const generationId = ++generationIdRef.current;
     setIsGeneratingAi(true);
     setAiSuccessMessage(null);
+    setAiError(null);
 
     try {
       // Pass the selected target language to the AI generator
-      const generated = await generateFaqWithAi(aiPrompt.trim(), language);
-      setQuestion(generated.question);
-      setAnswer(generated.answer);
+      const generated = await generateFaqWithAi(topic.trim(), language);
+      if (generationId !== generationIdRef.current) return; // modal was closed or reset meanwhile
+
+      // Type the result into the fields so the user watches the FAQ being written.
+      setIsTypingFill(true);
+      setQuestion('');
+      setAnswer('');
+      await typeInto(generated.question, setQuestion);
+      await typeInto(generated.answer, setAnswer);
+      setIsTypingFill(false);
 
       const isKnownCategory = FAQ_CATEGORIES.includes(generated.category as any);
       if (isKnownCategory) {
@@ -97,8 +174,9 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
       setAiPrompt('');
     } catch (err) {
       console.error('Failed to auto-generate FAQ', err);
+      setAiError(err instanceof Error ? err.message : 'Failed to generate the FAQ.');
     } finally {
-      setIsGeneratingAi(false);
+      if (generationId === generationIdRef.current) setIsGeneratingAi(false);
     }
   };
 
@@ -132,8 +210,8 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-bold text-slate-900">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <DialogTitle className="text-base sm:text-lg font-bold text-slate-900">
               {initialData ? 'Edit FAQ Template' : 'Add New FAQ Template'}
             </DialogTitle>
 
@@ -184,30 +262,42 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
               : 'Enter a topic or rough note, and AI will generate and auto-fill the question and answer strictly in English:'}
           </p>
 
-          <div className="flex gap-2 pt-1">
-            <Input
-              value={aiPrompt}
-              onChange={(e) => setAiPrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleGenerateWithAi();
-                }
-              }}
-              dir={isArabic ? 'rtl' : 'ltr'}
-              placeholder={
-                isArabic
-                  ? 'مثال: "سياسة استرجاع المنتجات التالفة خلال 14 يوم" أو "حدود الـ API"'
-                  : "e.g. 'Refund policy for damaged goods within 14 days' or 'API limits'..."
-              }
-              className="bg-white text-xs h-9"
-              disabled={isGeneratingAi || isSubmitting}
-            />
+          <div className="flex flex-wrap sm:flex-nowrap gap-2 pt-1">
+            <div className="relative flex-1 min-w-0 basis-full sm:basis-auto">
+              <Input
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleGenerateWithAi();
+                  }
+                }}
+                dir={isArabic ? 'rtl' : 'ltr'}
+                aria-label="FAQ topic"
+                className="bg-white text-xs h-9 disabled:opacity-100"
+                disabled={isGeneratingAi || isSubmitting || isVoiceBusy}
+              />
+              <TypewriterPlaceholder
+                key={language}
+                phrases={topicPlaceholders}
+                visible={!aiPrompt && voice.status === 'idle'}
+                className="px-3 text-xs text-slate-400"
+              />
+              <InputOverlay visible={!aiPrompt && voice.status === 'recording'} className="px-3 gap-2 text-xs text-red-600">
+                <SoundBars className="h-3" />
+                <span>Listening... اتكلم دلوقتي ({voice.seconds}s)</span>
+              </InputOverlay>
+              <InputOverlay visible={!aiPrompt && voice.status === 'transcribing'} className="px-3 text-xs text-purple-600">
+                <span>بنكتب اللي قلته...</span>
+              </InputOverlay>
+            </div>
+            <VoiceRecordButton voice={voice} size="sm" disabled={isGeneratingAi || isSubmitting} />
             <Button
               type="button"
               onClick={handleGenerateWithAi}
-              disabled={!aiPrompt.trim() || isGeneratingAi}
-              className="h-9 px-3.5 bg-purple-600 hover:bg-purple-700 text-white text-xs shrink-0 font-medium shadow-2xs"
+              disabled={!aiPrompt.trim() || isGeneratingAi || isVoiceBusy}
+              className="h-9 px-3.5 bg-purple-600 hover:bg-purple-700 text-white text-xs flex-1 sm:flex-none shrink-0 font-medium shadow-2xs"
             >
               {isGeneratingAi ? (
                 <>
@@ -222,6 +312,10 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
               )}
             </Button>
           </div>
+
+          {(voice.error || aiError) && (
+            <p className="text-[11px] text-red-600">{voice.error || aiError}</p>
+          )}
 
           {aiSuccessMessage && (
             <div className="flex items-center space-x-1.5 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 p-2 rounded-lg">
@@ -253,6 +347,8 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
               }
               required
               disabled={isSubmitting}
+              readOnly={isTypingFill}
+              className={isTypingFill ? 'ring-2 ring-purple-200 transition-shadow' : 'transition-shadow'}
             />
           </div>
 
@@ -278,7 +374,15 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
               rows={4}
               required
               disabled={isSubmitting}
+              readOnly={isTypingFill}
+              className={isTypingFill ? 'ring-2 ring-purple-200 transition-shadow' : 'transition-shadow'}
             />
+            {isTypingFill && (
+              <p className="flex items-center gap-1 text-[11px] text-purple-700">
+                <Caret className="h-3 text-purple-500" />
+                <span>{isArabic ? 'الذكاء الاصطناعي بيكتب...' : 'AI is writing...'}</span>
+              </p>
+            )}
           </div>
 
           {/* Category */}
@@ -355,7 +459,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={!question.trim() || !answer.trim() || isSubmitting}
+              disabled={!question.trim() || !answer.trim() || isSubmitting || isTypingFill}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {isSubmitting ? (

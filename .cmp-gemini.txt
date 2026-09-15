@@ -1,0 +1,14 @@
+FAIL   2519ms [wrong FAQ] | الحاجات اللي جبتها بايظة أعمل ايه؟ → SUPPORT | considered=46
+FAIL   2202ms [wrong FAQ] | الطلب وصلني مكسور → SHIP,SUPPORT | considered=46
+PASS   2709ms | 3ayez flousy tany → REFUND,SUPPORT | considered=46
+PASS   2012ms | بيخصم مني فلوس كل شهر ومش عايز الخدمة دي → REFUND,SUPPORT | considered=46
+PASS   1920ms | مش عارف ادخل على حسابي خالص → PASS,SUPPORT | considered=46
+PASS   1608ms | nesit el password → PASS | considered=46
+PASS   1959ms | الأوردر اتأخر ومجاش لحد دلوقتي → SHIP,SUPPORT | considered=46
+PASS   2168ms | عايز اضيف زمايلي في الشغل معايا → INVITE | considered=46
+PASS   5313ms | I bought a plan by mistake yesterday → REFUND,SUPPORT | considered=46
+PASS   1671ms | can our company chat bot answer from this → SLACK | considered=46
+FAIL   2189ms [wrong language] | What is the secret recipe for Italian pizza? → NONE | considered=46
+PASS   2220ms | ازاي اعمل كيكة شوكولاتة → NONE | considered=46
+
+SCORE gemini-flash-lite-latest: 9/12 | median 2189ms | fallbacks 0

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Sparkles, Loader2, SlidersHorizontal, X } from 'lucide-react';
+import { Search, Plus, Sparkles, Loader2, SlidersHorizontal, X, FileUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { FaqFilterOptions } from './FilterModal';
@@ -11,6 +11,7 @@ interface FaqToolbarProps {
   onOpenFiltersModal: () => void;
   onClearCategory: () => void;
   onOpenCreate: () => void;
+  onOpenImport: () => void;
   onSeed: () => void;
   isSeeding: boolean;
   seedProgress: { current: number; total: number } | null;
@@ -23,6 +24,7 @@ export const FaqToolbar: React.FC<FaqToolbarProps> = ({
   onOpenFiltersModal,
   onClearCategory,
   onOpenCreate,
+  onOpenImport,
   onSeed,
   isSeeding,
   seedProgress,
@@ -36,14 +38,14 @@ export const FaqToolbar: React.FC<FaqToolbarProps> = ({
   return (
     <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
       {/* Search and Filters Trigger */}
-      <div className="flex flex-1 items-center gap-2">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-1 flex-wrap items-center gap-2 min-w-0">
+        <div className="relative flex-1 min-w-[10rem] md:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search FAQs by question, answer, or tag..."
+            placeholder="Search FAQs..."
             className="pl-9 h-10 bg-white"
           />
         </div>
@@ -66,8 +68,8 @@ export const FaqToolbar: React.FC<FaqToolbarProps> = ({
 
         {/* Active Category Tag with Clear button */}
         {filters.category !== 'All' && (
-          <span className="inline-flex items-center space-x-1 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs px-2.5 py-1.5 rounded-lg">
-            <span>{filters.category}</span>
+          <span className="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs px-2.5 py-1.5 rounded-lg max-w-full">
+            <span className="truncate">{filters.category}</span>
             <button onClick={onClearCategory} className="hover:text-indigo-950">
               <X className="h-3 w-3" />
             </button>
@@ -76,12 +78,12 @@ export const FaqToolbar: React.FC<FaqToolbarProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="grid grid-cols-2 md:flex items-center gap-2 shrink-0">
         <Button
           variant="outline"
           onClick={onSeed}
           disabled={isSeeding}
-          className="h-10 text-xs sm:text-sm bg-white border-blue-200 text-blue-700 hover:bg-blue-50"
+          className="h-10 w-full md:w-auto text-xs sm:text-sm bg-white border-blue-200 text-blue-700 hover:bg-blue-50"
           title="Populate knowledge base with 25+ curated templates"
         >
           {isSeeding ? (
@@ -100,8 +102,18 @@ export const FaqToolbar: React.FC<FaqToolbarProps> = ({
         </Button>
 
         <Button
+          variant="outline"
+          onClick={onOpenImport}
+          className="h-10 w-full md:w-auto text-xs sm:text-sm bg-white border-purple-200 text-purple-700 hover:bg-purple-50"
+          title="Turn a document into FAQs with AI"
+        >
+          <FileUp className="h-4 w-4 mr-1.5 text-purple-600" />
+          <span>Import File</span>
+        </Button>
+
+        <Button
           onClick={onOpenCreate}
-          className="h-10 text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+          className="h-10 w-full md:w-auto col-span-2 md:col-span-1 text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
         >
           <Plus className="h-4 w-4 mr-1.5" />
           <span>Add New FAQ</span>

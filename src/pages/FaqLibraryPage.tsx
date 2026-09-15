@@ -6,6 +6,7 @@ import { FilterModal, FaqFilterOptions } from '@/components/faq-manager/FilterMo
 import { FaqTable } from '@/components/faq-manager/FaqTable';
 import { FaqFormModal } from '@/components/faq-manager/FaqFormModal';
 import { FaqDeleteDialog } from '@/components/faq-manager/FaqDeleteDialog';
+import { FaqImportModal } from '@/components/faq-manager/FaqImportModal';
 import {
   useFaqs,
   useFaqStats,
@@ -27,6 +28,7 @@ export const FaqLibraryPage: React.FC = () => {
     sortBy: 'newest',
   });
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
 
   // Modal states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -40,6 +42,12 @@ export const FaqLibraryPage: React.FC = () => {
     search
   );
   const { data: stats } = useFaqStats();
+  // Unfiltered list, so the importer can flag duplicates against the whole library.
+  const { data: allFaqsData } = useFaqs();
+  const existingQuestions = useMemo(
+    () => Array.from(new Set((allFaqsData?.faqs ?? []).map((f) => f.question.trim()))),
+    [allFaqsData?.faqs]
+  );
   const createMutation = useCreateFaq();
   const updateMutation = useUpdateFaq();
   const deleteMutation = useDeleteFaq();
@@ -154,6 +162,7 @@ export const FaqLibraryPage: React.FC = () => {
         onOpenFiltersModal={() => setIsFilterModalOpen(true)}
         onClearCategory={() => setFilters({ ...filters, category: 'All' })}
         onOpenCreate={handleOpenCreate}
+        onOpenImport={() => setIsImportOpen(true)}
         onSeed={handleSeed}
         isSeeding={seedMutation.isPending}
         seedProgress={seedProgress}
@@ -184,6 +193,13 @@ export const FaqLibraryPage: React.FC = () => {
         onSubmit={handleFormSubmit}
         initialData={editingFaq}
         isSubmitting={createMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Import FAQs from a document with AI */}
+      <FaqImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        existingQuestions={existingQuestions}
       />
 
       {/* Delete Confirmation Dialog */}

@@ -42,6 +42,22 @@ export interface FaqStats {
   languageCounts?: { en: number; ar: number };
 }
 
+/** An FAQ the AI extracted from an uploaded document, waiting for review. */
+export interface ImportedFaqDraft {
+  draftId: string;
+  question: string;
+  answer: string;
+  category: string;
+  tags: string[];
+  language: 'en' | 'ar';
+  /** Quote from the document that supports the answer. */
+  sourceExcerpt: string;
+  /** true/false for text files (quote checked against the document), null when it can't be checked (PDF). */
+  excerptVerified: boolean | null;
+  /** Existing FAQ question this repeats, if any. */
+  duplicateOf: string | null;
+}
+
 export const FAQ_CATEGORIES = [
   'All',
   'General',
