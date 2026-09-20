@@ -43,7 +43,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               <Filter className="h-4 w-4" />
             </div>
             <DialogTitle className="text-base font-bold text-slate-900">
-              Filter FAQ Knowledge Base • تصفية الأسئلة
+              Filter FAQ Knowledge Base
             </DialogTitle>
           </div>
         </DialogHeader>
@@ -51,7 +51,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
         <div className="space-y-4 py-2 text-xs">
           {/* Category Filter */}
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-700">Category (التصنيف)</label>
+            <label className="font-semibold text-slate-700">Category</label>
             <div className="grid grid-cols-2 gap-1.5">
               {FAQ_CATEGORIES.map((cat) => (
                 <button
@@ -73,7 +73,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
           {/* Vector Embedding Status */}
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-700">Vector Embedding Status (حالة التضمين المتجهي)</label>
+            <label className="font-semibold text-slate-700">Vector embedding status</label>
             <div className="grid grid-cols-3 gap-1.5">
               {[
                 { id: 'all', label: 'All FAQs' },
@@ -98,7 +98,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
           {/* Publication Status */}
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-700">Publish Status (حالة النشر)</label>
+            <label className="font-semibold text-slate-700">Publish status</label>
             <div className="grid grid-cols-3 gap-1.5">
               {[
                 { id: 'all', label: 'All' },
@@ -123,15 +123,15 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
           {/* Sorting */}
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-700">Sort Order (الترتيب)</label>
+            <label className="font-semibold text-slate-700">Sort order</label>
             <select
               value={filters.sortBy}
               onChange={(e) => onFiltersChange({ ...filters, sortBy: e.target.value as any })}
               className="w-full h-9 bg-white border border-slate-200 rounded-md px-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="newest">Newest First (الأحدث)</option>
-              <option value="oldest">Oldest First (الأقدم)</option>
-              <option value="alpha">Alphabetical Question A-Z (أبجدياً)</option>
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="alpha">Alphabetical A-Z</option>
             </select>
           </div>
         </div>

@@ -24,10 +24,10 @@ export const LoginScreen: React.FC = () => {
       const message = err instanceof Error ? err.message : '';
       setError(
         /invalid login credentials/i.test(message)
-          ? 'Wrong email or password • الإيميل أو الباسورد غلط'
+          ? 'Wrong email or password'
           : /email not confirmed/i.test(message)
-            ? 'This account is not confirmed yet • الحساب لسه متأكدش'
-            : message || 'Sign in failed • حصلت مشكلة في تسجيل الدخول'
+            ? 'This account is not confirmed yet'
+            : message || 'Sign in failed'
       );
     } finally {
       setIsSubmitting(false);
@@ -42,13 +42,13 @@ export const LoginScreen: React.FC = () => {
             <Bot className="h-6 w-6" />
           </div>
           <h1 className="text-xl font-extrabold tracking-tight text-slate-900">FAQ AI</h1>
-          <p className="text-xs text-slate-500">Sign in to continue • سجّل دخولك للمتابعة</p>
+          <p className="text-xs text-slate-500">Sign in to continue</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-md">
           <div className="space-y-1.5">
             <label htmlFor="login-email" className="text-xs font-semibold text-slate-700">
-              Email • الإيميل
+              Email
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -68,7 +68,7 @@ export const LoginScreen: React.FC = () => {
 
           <div className="space-y-1.5">
             <label htmlFor="login-password" className="text-xs font-semibold text-slate-700">
-              Password • الباسورد
+              Password
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -112,7 +112,7 @@ export const LoginScreen: React.FC = () => {
             ) : (
               <>
                 <LogIn className="h-4 w-4 mr-2" />
-                Sign in • دخول
+                Sign in
               </>
             )}
           </Button>
@@ -122,8 +122,6 @@ export const LoginScreen: React.FC = () => {
           <ShieldCheck className="h-3.5 w-3.5 shrink-0 mt-px text-slate-400" />
           <span>
             Accounts are managed in Supabase Auth. Passwords are never stored in this app's code.
-            <br />
-            الحسابات متسجلة في Supabase، والباسورد مش موجود في كود الموقع خالص.
           </span>
         </p>
       </div>

@@ -143,7 +143,7 @@ export const FaqLibraryPage: React.FC = () => {
             FAQ Knowledge Base Library
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            Manage templates, AI vector embeddings & categories • مكتبة الأسئلة المعتمدة
+            Manage templates, AI vector embeddings & categories
           </p>
         </div>
       </div>

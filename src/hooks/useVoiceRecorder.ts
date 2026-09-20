@@ -47,7 +47,7 @@ export function useVoiceRecorder(onTranscript: (text: string) => void) {
     setError(null);
 
     if (!isSupported) {
-      setError('Voice input is not supported in this browser. • المتصفح ده مش بيدعم التسجيل الصوتي.');
+      setError('Voice input is not supported in this browser.');
       return;
     }
 
@@ -58,10 +58,10 @@ export function useVoiceRecorder(onTranscript: (text: string) => void) {
       const name = err instanceof DOMException ? err.name : '';
       setError(
         name === 'NotAllowedError'
-          ? 'Microphone permission was denied. • لازم تسمح للمتصفح يستخدم المايك.'
+          ? 'Microphone permission was denied.'
           : name === 'NotFoundError'
-            ? 'No microphone found. • مفيش مايك متوصل.'
-            : 'Could not access the microphone. • مقدرناش نوصل للمايك.'
+            ? 'No microphone found.'
+            : 'Could not access the microphone.'
       );
       return;
     }
@@ -92,7 +92,7 @@ export function useVoiceRecorder(onTranscript: (text: string) => void) {
         if (text) {
           onTranscriptRef.current(text);
         } else {
-          setError("Didn't catch any speech, please try again. • مسمعتش كلام واضح، جرّب تاني.");
+          setError("Didn't catch any speech, please try again.");
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Transcription failed.');

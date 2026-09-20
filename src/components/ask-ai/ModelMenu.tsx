@@ -48,7 +48,7 @@ export const ModelMenu: React.FC<ModelMenuProps> = ({ selectedModel, onModelChan
             className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-slate-700 cursor-pointer outline-none data-[highlighted]:bg-slate-100"
           >
             <Settings2 className="h-3.5 w-3.5 text-slate-400" />
-            <span>Settings • الإعدادات</span>
+            <span>Settings</span>
           </DropdownMenu.Item>
 
           <DropdownMenu.Separator className="my-1 h-px bg-slate-100" />

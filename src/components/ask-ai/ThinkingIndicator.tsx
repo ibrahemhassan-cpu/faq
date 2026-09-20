@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Brain, BookOpenCheck, Sparkles } from 'lucide-react';
 
 const STEPS = [
-  { icon: Brain, text: 'بيفهم سؤالك • Understanding your question' },
-  { icon: BookOpenCheck, text: 'بيقرا كل الأسئلة الشائعة • Reading every FAQ' },
-  { icon: Sparkles, text: 'بيختار أنسب إجابة • Picking the best answer' },
+  { icon: Brain, text: 'Understanding your question' },
+  { icon: BookOpenCheck, text: 'Reading every FAQ' },
+  { icon: Sparkles, text: 'Picking the best answer' },
 ];
 
 /** Shown while the AI works: a shimmering card whose status steps advance over time. */

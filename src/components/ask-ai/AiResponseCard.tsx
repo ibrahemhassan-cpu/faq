@@ -98,7 +98,7 @@ export const AiResponseCard: React.FC<AiResponseCardProps> = ({ response }) => {
           >
             <Brain className="h-3.5 w-3.5 shrink-0 mt-0.5 text-indigo-600" />
             <span>
-              <span className="font-semibold">{ARABIC_SCRIPT.test(response.intent) ? 'فهمت إنك محتاج: ' : 'Understood need: '}</span>
+              <span className="font-semibold">Understood need:{' '}</span>
               {response.intent}
             </span>
           </div>

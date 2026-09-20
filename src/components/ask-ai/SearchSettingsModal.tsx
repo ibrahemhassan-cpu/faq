@@ -35,7 +35,7 @@ export const SearchSettingsModal: React.FC<SearchSettingsModalProps> = ({
               <Settings2 className="h-4 w-4" />
             </div>
             <DialogTitle className="text-base font-bold text-slate-900">
-              Settings • الإعدادات
+              Settings
             </DialogTitle>
           </div>
         </DialogHeader>
@@ -54,7 +54,7 @@ export const SearchSettingsModal: React.FC<SearchSettingsModalProps> = ({
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
               <Filter className="h-3.5 w-3.5 text-blue-600" />
-              <span>Scope Category (التصنيف)</span>
+              <span>Scope category</span>
             </label>
             <select
               value={selectedCategory}

@@ -11,18 +11,18 @@ import { VoiceRecordButton } from '@/components/common/VoiceRecordButton';
 import { InputOverlay, SoundBars, TypewriterPlaceholder } from '@/components/common/Motion';
 
 const PLACEHOLDER_PHRASES = [
-  'اكتب سؤالك أو دوس على المايك واتكلم...',
-  'الحاجة اللي اشتريتها وصلت بايظة، أعمل ايه؟',
+  'Type your question, or tap the mic and speak...',
+  'My order arrived damaged, what do I do?',
   'How do I cancel my subscription?',
-  'نسيت الباسورد ومش عارف أدخل',
+  "I forgot my password and can't sign in",
   'Can I connect this to Slack?',
-  'الأوردر اتأخر، هيوصل امتى؟',
+  'My order is late, when will it arrive?',
 ];
 
 // Real customers rarely phrase questions like the FAQ titles.
 const NATURAL_LANGUAGE_EXAMPLES = [
   'الحاجات اللي جبتها بايظة أعمل ايه؟',
-  'مش عارف ادخل على حسابي خالص',
+  "I can't get into my account at all",
   'I got charged but I want to stop using it',
 ];
 
@@ -46,9 +46,9 @@ export const AskAiHero: React.FC<AskAiHeroProps> = ({ onAsk, isLoading, faqs }) 
         { text: "What are your subscription pricing plans?", category: "Billing" },
         { text: "What is your refund and cancellation policy?", category: "Billing" },
         { text: "How do I enable Two-Factor Authentication (2FA)?", category: "Security" },
-        { text: "ما هي خطط وباقات الأسعار المتاحة لديكم؟", category: "باقات" },
-        { text: "ما هي سياسة الاسترجاع واسترداد الأموال وإلغاء الاشتراك؟", category: "استرجاع" },
-        { text: "كيف يمكنني استعادة أو تغيير كلمة مرور حسابي؟", category: "أمان" },
+        { text: "Which payment methods do you accept?", category: "Billing" },
+        { text: "What are the API rate limits?", category: "API" },
+        { text: "Where is user data hosted and how is it secured?", category: "Security" },
       ];
     }
 
@@ -115,8 +115,6 @@ export const AskAiHero: React.FC<AskAiHeroProps> = ({ onAsk, isLoading, faqs }) 
         <div className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100 max-w-full">
           <Sparkles className="h-3.5 w-3.5 text-blue-600 shrink-0" />
           <span>AI-Powered Knowledge Base</span>
-          <span className="hidden sm:inline">•</span>
-          <span>مساعد ذكي يفهم سؤالك</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 text-balance">
           Ask Any Question About Our Services
@@ -152,13 +150,13 @@ export const AskAiHero: React.FC<AskAiHeroProps> = ({ onAsk, isLoading, faqs }) 
             />
             <InputOverlay visible={!query && isRecording} className="px-3 gap-2 text-base text-red-600">
               <SoundBars />
-              <span className="truncate">Listening... اتكلم دلوقتي</span>
+              <span className="truncate">Listening...</span>
               <span className="font-mono text-xs text-red-400 shrink-0">
                 {voice.seconds}s<span className="hidden sm:inline"> / {voice.maxSeconds}s</span>
               </span>
             </InputOverlay>
             <InputOverlay visible={!query && isTranscribing} className="px-3 text-base text-blue-600">
-              <span>بنكتب اللي قلته</span>
+              <span>Transcribing</span>
               <span className="inline-flex">
                 <span className="animate-pulse">.</span>
                 <span className="animate-pulse [animation-delay:200ms]">.</span>
@@ -225,7 +223,7 @@ export const AskAiHero: React.FC<AskAiHeroProps> = ({ onAsk, isLoading, faqs }) 
       {/* Natural-language examples that do not share keywords with the FAQ titles */}
       <div className="mt-5 space-y-2">
         <span className="block px-1 text-xs text-slate-400 font-medium">
-          Try it like a real customer • اسأل بطريقتك:
+          Try it like a real customer:
         </span>
         <div className="flex flex-wrap items-center gap-2">
           {NATURAL_LANGUAGE_EXAMPLES.map((text) => (
@@ -245,7 +243,7 @@ export const AskAiHero: React.FC<AskAiHeroProps> = ({ onAsk, isLoading, faqs }) 
       <div className="mt-5 space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
           <span className="text-xs text-slate-400 font-medium">
-            Try asking (from your live knowledge base • من قاعدة أسئلتك):
+            Try asking (from your live knowledge base):
           </span>
           <button
             type="button"
@@ -254,7 +252,7 @@ export const AskAiHero: React.FC<AskAiHeroProps> = ({ onAsk, isLoading, faqs }) 
             title="Show other questions from your database"
           >
             <Shuffle className="h-3 w-3" />
-            <span>Shuffle / أسئلة أخرى</span>
+            <span>Shuffle</span>
           </button>
         </div>
 

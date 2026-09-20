@@ -33,7 +33,7 @@ export async function extractFaqsFromFile(
   const collected: ExtractedFaq[] = [];
 
   if (isPdf) {
-    if (file.size > MAX_PDF_BYTES) throw new Error('PDF is too large (max 5 MB). • حجم الـ PDF أكبر من 5 ميجا.');
+    if (file.size > MAX_PDF_BYTES) throw new Error('PDF is too large (max 5 MB).');
     options.onProgress?.({ part: 1, totalParts: 1, foundSoFar: 0 });
     const { faqs } = await callFaqAi<{ faqs: ExtractedFaq[] }>('extract-faqs', {
       file: { data: await fileToBase64(file), mimeType: 'application/pdf' },
@@ -44,12 +44,12 @@ export async function extractFaqsFromFile(
     collected.push(...faqs);
   } else {
     if (!TEXT_EXTENSIONS.includes(extension) && !file.type.startsWith('text/')) {
-      throw new Error('Unsupported file. Use TXT, MD, CSV, JSON, or PDF. • نوع الملف مش مدعوم.');
+      throw new Error('Unsupported file. Use TXT, MD, CSV, JSON, or PDF.');
     }
-    if (file.size > MAX_TEXT_FILE_BYTES) throw new Error('File is too large (max 2 MB). • الملف أكبر من 2 ميجا.');
+    if (file.size > MAX_TEXT_FILE_BYTES) throw new Error('File is too large (max 2 MB).');
 
     const text = (await file.text()).trim();
-    if (!text) throw new Error('The file is empty. • الملف فاضي.');
+    if (!text) throw new Error('The file is empty.');
 
     const parts = splitIntoChunks(text, CHUNK_CHARS);
     for (let index = 0; index < parts.length; index++) {

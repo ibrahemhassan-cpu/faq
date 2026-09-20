@@ -9,9 +9,9 @@ interface NavbarProps {
 }
 
 const TABS = [
-  { id: 'ask', icon: Sparkles, iconClass: 'text-blue-500', label: 'Ask AI', shortLabel: 'Ask AI', arabic: 'اسأل' },
-  { id: 'library', icon: HelpCircle, iconClass: 'text-indigo-500', label: 'FAQ Library', shortLabel: 'Library', arabic: 'المكتبة' },
-  { id: 'playground', icon: Layers, iconClass: 'text-purple-500', label: 'Match Inspector', shortLabel: 'Inspector', arabic: 'الفاحص' },
+  { id: 'ask', icon: Sparkles, iconClass: 'text-blue-500', label: 'Ask AI', shortLabel: 'Ask AI' },
+  { id: 'library', icon: HelpCircle, iconClass: 'text-indigo-500', label: 'FAQ Library', shortLabel: 'Library' },
+  { id: 'playground', icon: Layers, iconClass: 'text-purple-500', label: 'Match Inspector', shortLabel: 'Inspector' },
 ];
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
@@ -77,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
 
           {/* Navigation Tabs */}
           <nav className="order-last md:order-none w-full md:w-auto grid grid-cols-3 md:flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/60 shadow-inner">
-            {TABS.map(({ id, icon: Icon, iconClass, label, shortLabel, arabic }) => (
+            {TABS.map(({ id, icon: Icon, iconClass, label, shortLabel }) => (
               <button
                 key={id}
                 onClick={() => onTabChange(id)}
@@ -91,7 +91,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
                 <Icon className={`h-4 w-4 shrink-0 ${iconClass}`} />
                 <span className="sm:hidden truncate">{shortLabel}</span>
                 <span className="hidden sm:inline">{label}</span>
-                <span className="hidden lg:inline text-[11px] text-slate-400 font-normal">| {arabic}</span>
               </button>
             ))}
           </nav>

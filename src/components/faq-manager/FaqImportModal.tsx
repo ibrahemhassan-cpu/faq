@@ -32,8 +32,8 @@ interface FaqImportModalProps {
 type Step = 'pick' | 'analyzing' | 'review';
 
 const LANGUAGE_OPTIONS: { id: ImportLanguage; label: string }[] = [
-  { id: 'auto', label: 'Same as file • زي الملف' },
-  { id: 'ar', label: 'العربية' },
+  { id: 'auto', label: 'Same as file' },
+  { id: 'ar', label: 'Arabic' },
   { id: 'en', label: 'English' },
 ];
 
@@ -139,7 +139,7 @@ export const FaqImportModal: React.FC<FaqImportModalProps> = ({ isOpen, onClose,
         })),
         onProgress: (done, total) => setSaveProgress(`${done}/${total}`),
       });
-      toast.success(`Added ${count} FAQs • تم إضافة ${count} سؤال`);
+      toast.success(`Added ${count} FAQs`);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Saving failed.');
@@ -161,7 +161,7 @@ export const FaqImportModal: React.FC<FaqImportModalProps> = ({ isOpen, onClose,
               <UploadCloud className="h-4 w-4" />
             </div>
             <DialogTitle className="text-base sm:text-lg font-bold text-slate-900">
-              Import FAQs from a File • استيراد من ملف
+              Import FAQs from a File
             </DialogTitle>
           </div>
         </DialogHeader>
@@ -195,7 +195,7 @@ export const FaqImportModal: React.FC<FaqImportModalProps> = ({ isOpen, onClose,
               }`}
             >
               <UploadCloud className={`h-9 w-9 transition-transform duration-300 ${isDragging ? 'text-purple-600 -translate-y-1' : 'text-slate-400'}`} />
-              <p className="text-sm font-semibold text-slate-800">Drop a file here or tap to choose • اسحب الملف هنا أو دوس للاختيار</p>
+              <p className="text-sm font-semibold text-slate-800">Drop a file here or tap to choose</p>
               <p className="text-[11px] text-slate-500">TXT, MD, CSV, JSON (up to 2 MB) • PDF (up to 5 MB)</p>
               <input
                 ref={inputRef}
@@ -223,7 +223,7 @@ export const FaqImportModal: React.FC<FaqImportModalProps> = ({ isOpen, onClose,
             )}
 
             <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-slate-700">FAQ language • لغة الأسئلة</p>
+              <p className="text-xs font-semibold text-slate-700">FAQ language</p>
               <div className="grid grid-cols-3 gap-1.5">
                 {LANGUAGE_OPTIONS.map((option) => (
                   <button
@@ -250,7 +250,7 @@ export const FaqImportModal: React.FC<FaqImportModalProps> = ({ isOpen, onClose,
               </Button>
               <Button onClick={handleAnalyze} disabled={!file} className="bg-purple-600 hover:bg-purple-700 text-white">
                 <Sparkles className="h-4 w-4 mr-1.5" />
-                Analyze with AI • حلّل بالذكاء الاصطناعي
+                Analyze with AI
               </Button>
             </DialogFooter>
           </div>
@@ -266,7 +266,7 @@ export const FaqImportModal: React.FC<FaqImportModalProps> = ({ isOpen, onClose,
               </span>
             </div>
             <div className="space-y-1">
-              <p className="font-semibold text-slate-900">الذكاء الاصطناعي بيقرا الملف ويكتب الأسئلة...</p>
+              <p className="font-semibold text-slate-900">Reading the document and writing FAQs...</p>
               <p className="text-xs text-slate-500 truncate px-4">{file?.name}</p>
               {progress && (
                 <p className="text-xs text-purple-700">
@@ -294,8 +294,7 @@ export const FaqImportModal: React.FC<FaqImportModalProps> = ({ isOpen, onClose,
               <div className="py-8 text-center space-y-2">
                 <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto" />
                 <p className="text-sm font-semibold text-slate-800">No customer FAQs found in this file.</p>
-                <p className="text-xs text-slate-500">مالقيناش معلومات تنفع كأسئلة للعملاء في الملف ده.</p>
-              </div>
+                </div>
             ) : (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-purple-50/70 border border-purple-100 px-3 py-2">
@@ -381,7 +380,7 @@ export const FaqImportModal: React.FC<FaqImportModalProps> = ({ isOpen, onClose,
                                   <p dir="auto" className="text-sm text-slate-600 whitespace-pre-line break-words">{draft.answer}</p>
                                 )}
                                 {draft.duplicateOf && (
-                                  <p dir="auto" className="text-[11px] text-amber-800">Similar existing FAQ • سؤال مشابه موجود: {draft.duplicateOf}</p>
+                                  <p dir="auto" className="text-[11px] text-amber-800">Similar existing FAQ: {draft.duplicateOf}</p>
                                 )}
                                 {draft.sourceExcerpt && (
                                   <p dir="auto" className="flex gap-1.5 text-[11px] italic text-slate-500 bg-slate-50 rounded-md px-2 py-1.5 break-words">
@@ -436,7 +435,7 @@ export const FaqImportModal: React.FC<FaqImportModalProps> = ({ isOpen, onClose,
                     Saving {saveProgress ?? ''}
                   </>
                 ) : (
-                  <>Add {selected.size} FAQs • أضف</>
+                  <>Add {selected.size} FAQs</>
                 )}
               </Button>
             </DialogFooter>

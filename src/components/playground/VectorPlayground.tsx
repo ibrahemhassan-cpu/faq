@@ -14,7 +14,7 @@ const PRESET_PARAPHRASES = [
       "I bought a plan by mistake yesterday",
       "الحاجات اللي جبتها بايظة أعمل ايه؟",
       "3ayez flousy tany",
-      "بيخصم مني فلوس كل شهر ومش عايز الخدمة دي",
+      "It charges me every month and I don't want it anymore",
     ],
   },
   {
@@ -29,7 +29,7 @@ const PRESET_PARAPHRASES = [
     original: "Can I connect the FAQ knowledge base to Slack or Microsoft Teams?",
     variations: [
       "can our company chat bot answer from this",
-      "عايز الموظفين يسألوا البوت جوه الشات بتاعنا",
+      "I want staff to ask the bot inside our chat",
     ],
   },
 ];

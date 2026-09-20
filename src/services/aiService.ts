@@ -12,12 +12,12 @@ export interface AiModelOption {
 }
 
 export const AVAILABLE_MODELS: AiModelOption[] = [
-  { id: 'gemini-flash-lite-latest', name: 'Gemini Flash Lite', provider: 'Google Gemini', description: 'Fast and low-cost • سريع وموفّر', badge: 'Recommended' },
-  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', provider: 'Google Gemini', description: 'Most capable, a little slower • الأذكى', badge: 'Advanced' },
-  { id: 'gemini-flash-latest', name: 'Gemini Flash', provider: 'Google Gemini', description: 'Balanced speed and quality • متوازن' },
+  { id: 'gemini-flash-lite-latest', name: 'Gemini Flash Lite', provider: 'Google Gemini', description: 'Fast and low-cost', badge: 'Recommended' },
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', provider: 'Google Gemini', description: 'Most capable, a little slower', badge: 'Advanced' },
+  { id: 'gemini-flash-latest', name: 'Gemini Flash', provider: 'Google Gemini', description: 'Balanced speed and quality' },
   // NVIDIA models via OpenRouter; need OPENROUTER_API_KEY on the server
-  { id: 'nvidia/nemotron-3-super-120b-a12b:free', name: 'Nemotron 3 Super', provider: 'NVIDIA', description: 'Free via OpenRouter, rate-limited • مجاني', badge: 'Free' },
-  { id: 'nvidia/nemotron-3-ultra-550b-a55b', name: 'Nemotron 3 Ultra', provider: 'NVIDIA', description: 'Needs OpenRouter credits • مدفوع', badge: 'Paid' },
+  { id: 'nvidia/nemotron-3-super-120b-a12b:free', name: 'Nemotron 3 Super', provider: 'NVIDIA', description: 'Free via OpenRouter, rate-limited', badge: 'Free' },
+  { id: 'nvidia/nemotron-3-ultra-550b-a55b', name: 'Nemotron 3 Ultra', provider: 'NVIDIA', description: 'Needs OpenRouter credits', badge: 'Paid' },
 ];
 
 export const DEFAULT_MODEL = AVAILABLE_MODELS[0].id;

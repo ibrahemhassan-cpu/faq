@@ -18,10 +18,10 @@ import { Caret, InputOverlay, SoundBars, TypewriterPlaceholder } from '@/compone
 import { usePrefersReducedMotion } from '@/hooks/useTypewriter';
 
 const AR_TOPIC_EXAMPLES = [
-  'اكتب الفكرة أو دوس على المايك واتكلم...',
-  'سياسة استرجاع المنتجات التالفة خلال 14 يوم',
-  'إزاي العميل يغير الباقة بتاعته',
-  'مواعيد التوصيل للمحافظات',
+  'Describe the topic, or tap the mic and speak...',
+  'Refund policy for damaged goods within 14 days',
+  'How a customer changes their plan',
+  'Delivery times per governorate',
 ];
 const EN_TOPIC_EXAMPLES = [
   'Type a topic or tap the mic and speak...',
@@ -169,7 +169,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
       }
 
       setTagsInput(generated.tags.join(', '));
-      const langLabel = language === 'ar' ? 'العربية' : 'English';
+      const langLabel = language === 'ar' ? 'Arabic' : 'English';
       setAiSuccessMessage(`✨ Generated strictly in ${langLabel} and auto-filled below!`);
       setAiPrompt('');
     } catch (err) {
@@ -238,7 +238,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                AR (العربية)
+                AR (Arabic)
               </button>
             </div>
           </div>
@@ -249,7 +249,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
           <div className="flex items-center justify-between text-xs font-bold text-purple-950">
             <div className="flex items-center space-x-1.5">
               <Wand2 className="h-4 w-4 text-purple-600" />
-              <span>Generate FAQ with AI (توليد السؤال بالذكاء الاصطناعي)</span>
+              <span>Generate FAQ with AI</span>
             </div>
             <span className="font-mono text-[10px] bg-purple-200/80 text-purple-800 px-1.5 py-0.5 rounded font-bold">
               Target: {language.toUpperCase()}
@@ -258,8 +258,8 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
 
           <p className="text-[11px] text-purple-800/80 leading-tight">
             {language === 'ar'
-              ? 'اكتب الفكرة أو الموضوع وسيقوم الذكاء الاصطناعي بصياغة السؤال والإجابة والوسوم باللغة العربية الفصحى تلقائياً:'
-              : 'Enter a topic or rough note, and AI will generate and auto-fill the question and answer strictly in English:'}
+              ? 'Enter a topic or rough note, and AI will write the question, answer, and tags in Arabic:'
+              : 'Enter a topic or rough note, and AI will write the question, answer, and tags in English:'}
           </p>
 
           <div className="flex flex-wrap sm:flex-nowrap gap-2 pt-1">
@@ -286,10 +286,10 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
               />
               <InputOverlay visible={!aiPrompt && voice.status === 'recording'} className="px-3 gap-2 text-xs text-red-600">
                 <SoundBars className="h-3" />
-                <span>Listening... اتكلم دلوقتي ({voice.seconds}s)</span>
+                <span>Listening... ({voice.seconds}s)</span>
               </InputOverlay>
               <InputOverlay visible={!aiPrompt && voice.status === 'transcribing'} className="px-3 text-xs text-purple-600">
-                <span>بنكتب اللي قلته...</span>
+                <span>Transcribing...</span>
               </InputOverlay>
             </div>
             <VoiceRecordButton voice={voice} size="sm" disabled={isGeneratingAi || isSubmitting} />
@@ -333,7 +333,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
                 Question ({language.toUpperCase()}) <span className="text-red-500">*</span>
               </label>
               <span className="text-[11px] text-slate-400 font-normal">
-                {isArabic ? 'السؤال المعتمد' : 'Canonical question'}
+                'Canonical question'
               </span>
             </div>
             <Input
@@ -341,9 +341,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
               onChange={(e) => setQuestion(e.target.value)}
               dir={isArabic ? 'rtl' : 'ltr'}
               placeholder={
-                isArabic
-                  ? 'مثال: كيف يمكنني استرجاع قيمة الاشتراك؟'
-                  : 'e.g. What is your refund policy?'
+'e.g. What is your refund policy?'
               }
               required
               disabled={isSubmitting}
@@ -359,7 +357,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
                 Answer / Solution ({language.toUpperCase()}) <span className="text-red-500">*</span>
               </label>
               <span className="text-[11px] text-slate-400 font-normal">
-                {isArabic ? 'الإجابة المعتمدة' : 'Authoritative solution'}
+                'Authoritative solution'
               </span>
             </div>
             <Textarea
@@ -367,9 +365,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
               onChange={(e) => setAnswer(e.target.value)}
               dir={isArabic ? 'rtl' : 'ltr'}
               placeholder={
-                isArabic
-                  ? 'اكتب الإجابة الواضحة والدقيقة التي سيعتمد عليها المساعد الذكي للإجابة على المستخدمين...'
-                  : 'Provide a clear, authoritative answer that the AI will use to formulate responses...'
+'Provide a clear, authoritative answer that the AI will use to formulate responses...'
               }
               rows={4}
               required
@@ -380,7 +376,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
             {isTypingFill && (
               <p className="flex items-center gap-1 text-[11px] text-purple-700">
                 <Caret className="h-3 text-purple-500" />
-                <span>{isArabic ? 'الذكاء الاصطناعي بيكتب...' : 'AI is writing...'}</span>
+                <span>'AI is writing...'</span>
               </p>
             )}
           </div>
@@ -389,7 +385,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-700">
-                Category (التصنيف)
+                Category
               </label>
               <select
                 value={category}
@@ -432,9 +428,7 @@ export const FaqFormModal: React.FC<FaqFormModalProps> = ({
               onChange={(e) => setTagsInput(e.target.value)}
               dir={isArabic ? 'rtl' : 'ltr'}
               placeholder={
-                isArabic
-                  ? 'استرجاع، ضمان، فوترة، إلغاء'
-                  : 'billing, refund, guarantee, cancellation'
+'billing, refund, guarantee, cancellation'
               }
               disabled={isSubmitting}
             />

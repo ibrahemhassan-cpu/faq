@@ -26,7 +26,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({ voice, dis
           size="sm"
           onClick={voice.cancel}
           className={cn(height, 'px-2 text-slate-500 hover:bg-slate-100')}
-          title="Cancel recording • إلغاء"
+          title="Cancel recording"
           aria-label="Cancel recording"
         >
           <X className="h-4 w-4" />
@@ -36,7 +36,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({ voice, dis
           size="sm"
           onClick={voice.stop}
           className={cn(height, 'px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white animate-pulse flex items-center gap-1.5')}
-          title="Stop and send • إيقاف وإرسال"
+          title="Stop and send"
           aria-label="Stop recording"
         >
           <Square className="h-3.5 w-3.5 fill-current" />
@@ -55,7 +55,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({ voice, dis
       onClick={voice.start}
       disabled={disabled || isTranscribing}
       className={cn(height, size === 'md' ? 'w-10' : 'w-9', 'p-0 shrink-0 rounded-xl text-slate-600 hover:bg-blue-50 hover:text-blue-600')}
-      title="Speak instead of typing • اتكلم بدل ما تكتب"
+      title="Speak instead of typing"
       aria-label="Record voice"
     >
       {isTranscribing ? (

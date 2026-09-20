@@ -126,10 +126,6 @@ export const FaqTable: React.FC<FaqTableProps> = ({
             <span className="font-bold text-slate-900">
               Showing {displayedCount} of {totalCount} FAQs
             </span>
-            <span className="hidden sm:inline text-slate-400">•</span>
-            <span className="text-slate-500">
-              (عرض {displayedCount} من إجمالي {totalCount} سؤال)
-            </span>
           </div>
           <span className="font-mono text-blue-600 font-bold">
             {progressPercentage}%
@@ -303,7 +299,7 @@ export const FaqTable: React.FC<FaqTableProps> = ({
           </Button>
         ) : totalCount > PAGE_SIZE ? (
           <p className="text-xs text-slate-400">
-            ✓ All {totalCount} FAQs loaded • تم عرض جميع الأسئلة
+            ✓ All {totalCount} FAQs loaded
           </p>
         ) : null}
       </div>
