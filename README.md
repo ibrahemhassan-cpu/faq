@@ -70,12 +70,36 @@ Open [http://localhost:5173](http://localhost:5173). In dev, the Vite server ser
 | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | server | OpenRouter access (NVIDIA models) and its default model |
 | `AI_FALLBACK_PROVIDER` | server | Provider to try if the main one fails |
 | `AI_REASONING_EFFORT` | server | Optional `low`/`medium`/`high` thinking for models that support it |
+| `FAQ_REQUIRE_AUTH` | server | Require a signed-in user on every AI request (default `true`) |
 | `FAQ_FULL_CONTEXT_LIMIT`, `FAQ_PREFILTER_COUNT` | server | Large-library pre-filter tuning |
 | `VITE_FAQ_AI_URL` | browser | Optional: use a deployed function during dev |
 
 ⚠️ Never prefix server variables with `VITE_`, or Vite will bundle them into the public JavaScript.
 
 ---
+
+## 🔐 Sign-in (Supabase Auth)
+
+The whole app sits behind a sign-in screen. Accounts live in Supabase Auth, so no email or
+password is ever stored in this repository, in env vars, or in the built JavaScript.
+
+**One-time setup in the Supabase dashboard:**
+
+1. **Authentication → Providers → Email:** make sure Email is enabled, and turn **Confirm email** off
+   (or confirm the user manually) so the account can sign in right away.
+2. **Authentication → Users → Add user:** enter your email and choose the password there.
+3. **Authentication → Sign In / Providers → turn OFF "Allow new users to sign up".**
+   Without this, anyone could create their own account with the public anon key.
+4. **SQL Editor:** run `supabase/migrations/20260920_lock_down_rls.sql` so only signed-in users
+   can read or change FAQs.
+
+How it is enforced:
+
+- **The app:** nothing renders until there is a session; sign out from the button in the navbar.
+- **The database:** RLS allows `authenticated` only; the public anon key can no longer read or write.
+- **The AI function:** every request must carry the signed-in user's token. The anon key alone is
+  rejected, so nobody else can burn your AI credits. The function reads the database with the
+  service role key, which is why it still works with RLS locked down.
 
 ## ☁️ Deploying the AI function (production)
 
@@ -104,7 +128,7 @@ Run these in the Supabase SQL Editor, in order:
 
 ### ⚠️ Before going to production
 
-- The POC's RLS policies let anonymous users insert, update, and delete FAQs. Restrict writes to authenticated admins.
+- Run `20260920_lock_down_rls.sql` and turn off public sign-ups (see the sign-in section above).
 - Add rate limiting in front of `faq-ai`: every call costs AI tokens.
 
 ---

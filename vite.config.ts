@@ -14,6 +14,8 @@ function faqAiDevApi(env: Record<string, string>): Plugin {
     SUPABASE_ANON_KEY: env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY,
     // Local mode keeps FAQs in the browser, so the dev server accepts them.
     FAQ_ALLOW_CLIENT_FAQS: env.FAQ_ALLOW_CLIENT_FAQS || 'true',
+    // Sign-in is enforced by the deployed function, not by the local dev server.
+    FAQ_REQUIRE_AUTH: env.FAQ_REQUIRE_AUTH || 'false',
   };
 
   return {
@@ -37,7 +39,9 @@ function faqAiDevApi(env: Record<string, string>): Plugin {
           return send(400, { error: 'Invalid JSON body' });
         }
 
-        const result = await handleFaqAiRequest(body, readServerConfig((name) => serverEnv[name]));
+        // Pass the browser's Authorization header so database reads run as the signed-in user.
+        const authHeader = req.headers.authorization ?? null;
+        const result = await handleFaqAiRequest(body, readServerConfig((name) => serverEnv[name]), authHeader);
         send(result.status, result.body);
       });
     },

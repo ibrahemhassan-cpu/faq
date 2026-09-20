@@ -1,6 +1,7 @@
 import React from 'react';
-import { Bot, Database, Sparkles, HelpCircle, Layers, CheckCircle2 } from 'lucide-react';
+import { Bot, Database, Sparkles, HelpCircle, Layers, CheckCircle2, LogOut } from 'lucide-react';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 
 interface NavbarProps {
   activeTab: string;
@@ -14,6 +15,8 @@ const TABS = [
 ];
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
+  const { email, signOut } = useAuth();
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-2xs">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -58,6 +61,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
               <span className="hidden lg:inline font-mono text-[11px]">Server AI</span>
               <CheckCircle2 className="h-3.5 w-3.5 text-purple-600" />
             </div>
+
+            {email && (
+              <button
+                type="button"
+                onClick={() => void signOut()}
+                title={`Signed in as ${email} — sign out`}
+                className="flex items-center gap-1.5 px-2 lg:px-2.5 py-1 rounded-full text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-red-600 transition-colors max-w-[9rem]"
+              >
+                <LogOut className="h-3.5 w-3.5 shrink-0" />
+                <span className="hidden lg:inline truncate">{email}</span>
+              </button>
+            )}
           </div>
 
           {/* Navigation Tabs */}

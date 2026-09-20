@@ -35,6 +35,6 @@ Deno.serve(async (req: Request) => {
   }
 
   const config = readServerConfig((name) => Deno.env.get(name));
-  const result = await handleFaqAiRequest(body, config);
+  const result = await handleFaqAiRequest(body, config, req.headers.get('Authorization'));
   return jsonResponse(result.status, result.body);
 });

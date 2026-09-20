@@ -25,7 +25,16 @@ export interface KnowledgeFaq {
 
 export interface ServerConfig extends LlmConfig {
   supabaseUrl?: string;
+  /** Key used for database reads (service role bypasses RLS, so the table can stay locked). */
   supabaseKey?: string;
+  /** Public key, needed to verify a caller's token with the auth API. */
+  supabaseAnonKey?: string;
+  /** Require a signed-in Supabase user on every request. */
+  requireAuth: boolean;
+  /** True when supabaseKey is the service-role key, which bypasses RLS. */
+  hasServiceRole: boolean;
+  /** Token of the user making this request; used for database reads when there is no service-role key. */
+  callerToken?: string;
   /** Accept FAQs sent by the browser (local/offline mode). Keep off in production. */
   allowClientFaqs: boolean;
   /** Above this many unique FAQs, a pgvector pre-filter narrows the set sent to the LLM. */
@@ -92,7 +101,10 @@ export function readServerConfig(getEnv: (name: string) => string | undefined): 
     openrouterModel: getEnv('OPENROUTER_MODEL'),
     reasoningEffort: getEnv('AI_REASONING_EFFORT') || undefined,
     supabaseUrl: getEnv('SUPABASE_URL'),
-    supabaseKey: getEnv('SUPABASE_ANON_KEY') || getEnv('SUPABASE_SERVICE_ROLE_KEY'),
+    supabaseKey: getEnv('SUPABASE_SERVICE_ROLE_KEY') || getEnv('SUPABASE_ANON_KEY'),
+    supabaseAnonKey: getEnv('SUPABASE_ANON_KEY'),
+    requireAuth: getEnv('FAQ_REQUIRE_AUTH') !== 'false',
+    hasServiceRole: Boolean(getEnv('SUPABASE_SERVICE_ROLE_KEY')),
     allowClientFaqs: getEnv('FAQ_ALLOW_CLIENT_FAQS') === 'true',
     fullContextLimit: Number(getEnv('FAQ_FULL_CONTEXT_LIMIT')) || 300,
     prefilterCount: Number(getEnv('FAQ_PREFILTER_COUNT')) || 80,
@@ -105,23 +117,31 @@ export function readServerConfig(getEnv: (name: string) => string | undefined): 
 
 export async function handleFaqAiRequest(
   body: unknown,
-  config: ServerConfig
+  config: ServerConfig,
+  authHeader?: string | null
 ): Promise<{ status: number; body: unknown }> {
   const payload = (body ?? {}) as Record<string, unknown>;
+  const callerToken = authHeader?.replace(/^Bearer\s+/i, '').trim();
+  const requestConfig: ServerConfig = {
+    ...config,
+    callerToken: callerToken && callerToken !== config.supabaseAnonKey ? callerToken : undefined,
+  };
   try {
+    if (config.requireAuth) await assertSignedIn(authHeader, config);
+
     switch (payload.action) {
       case 'ask':
-        return { status: 200, body: await askFaq(payload, config) };
+        return { status: 200, body: await askFaq(payload, requestConfig) };
       case 'generate-faq':
-        return { status: 200, body: await generateFaqDraft(payload, config) };
+        return { status: 200, body: await generateFaqDraft(payload, requestConfig) };
       case 'embed':
-        return { status: 200, body: await embedForStorage(payload, config) };
+        return { status: 200, body: await embedForStorage(payload, requestConfig) };
       case 'transcribe':
-        return { status: 200, body: await transcribeVoice(payload, config) };
+        return { status: 200, body: await transcribeVoice(payload, requestConfig) };
       case 'extract-faqs':
-        return { status: 200, body: await extractFaqs(payload, config) };
+        return { status: 200, body: await extractFaqs(payload, requestConfig) };
       case 'status':
-        return { status: 200, body: { ai: describeActiveProvider(config) } };
+        return { status: 200, body: { ai: describeActiveProvider(requestConfig) } };
       default:
         throw new HttpError(400, 'Unknown action');
     }
@@ -131,6 +151,27 @@ export async function handleFaqAiRequest(
     }
     console.error('[faq-ai] request failed:', error);
     return { status: 502, body: { error: 'The AI service is temporarily unavailable. Please try again.' } };
+  }
+}
+
+/**
+ * Rejects anyone without a valid Supabase user session. The public anon key is itself a
+ * JWT, so it is not accepted here: only a real user token passes.
+ */
+async function assertSignedIn(authHeader: string | null | undefined, config: ServerConfig): Promise<void> {
+  const token = authHeader?.replace(/^Bearer\s+/i, '').trim();
+  if (!token || token === config.supabaseAnonKey) {
+    throw new HttpError(401, 'Please sign in first.');
+  }
+  if (!config.supabaseUrl || !config.supabaseAnonKey) {
+    throw new HttpError(503, 'Authentication is not configured on the server.');
+  }
+
+  const response = await fetch(`${config.supabaseUrl}/auth/v1/user`, {
+    headers: { apikey: config.supabaseAnonKey, Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    throw new HttpError(401, 'Your session has expired. Please sign in again.');
   }
 }
 
@@ -150,9 +191,12 @@ async function askFaq(payload: Record<string, unknown>, config: ServerConfig): P
   const { faqs, strategy } = await narrowForContext(query, allFaqs, config, category);
 
   if (faqs.length === 0) {
+    console.warn('[faq-ai] knowledge base returned no FAQs (check RLS and the reading key)');
     return {
       query,
-      answer: refusalText(query),
+      answer: ARABIC_SCRIPT.test(query)
+        ? 'مفيش أسئلة متاحة في قاعدة المعرفة حالياً. لو لسه مضفتش أسئلة، ابدأ بإضافتها من صفحة المكتبة.'
+        : 'There are no FAQs available to search yet. Add some from the FAQ Library page.',
       intent: '',
       confidence: 'low',
       hasRelevantMatch: false,
@@ -409,9 +453,12 @@ async function fetchPublishedFaqs(config: ServerConfig, category?: string): Prom
 }
 
 function supabaseHeaders(config: ServerConfig): Record<string, string> {
+  // With RLS locked to signed-in users, the anon key reads nothing. So unless we hold a
+  // service-role key, read on behalf of the user who made the request.
+  const bearer = !config.hasServiceRole && config.callerToken ? config.callerToken : config.supabaseKey;
   return {
     apikey: config.supabaseKey!,
-    Authorization: `Bearer ${config.supabaseKey}`,
+    Authorization: `Bearer ${bearer}`,
     'Content-Type': 'application/json',
   };
 }
@@ -433,7 +480,7 @@ function dedupeFaqs(faqs: KnowledgeFaq[]): KnowledgeFaq[] {
   const normalize = (text: string) => text.toLowerCase().replace(/\s+/g, ' ').trim();
   const seen = new Set<string>();
   return faqs.filter((faq) => {
-    const key = `${normalize(faq.question)} ${normalize(faq.answer)}`;
+    const key = `${normalize(faq.question)} :: ${normalize(faq.answer)}`;
     if (!faq.id || seen.has(key)) return false;
     seen.add(key);
     return true;

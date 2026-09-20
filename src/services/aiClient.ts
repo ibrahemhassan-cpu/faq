@@ -5,6 +5,8 @@
  * Set VITE_FAQ_AI_URL to point at a specific deployment.
  */
 
+import { supabase } from '@/lib/supabase';
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -16,7 +18,9 @@ export async function callFaqAi<T>(action: string, payload: Record<string, unkno
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (supabaseAnonKey) {
     headers.apikey = supabaseAnonKey;
-    headers.Authorization = `Bearer ${supabaseAnonKey}`;
+    // The signed-in user's token, so the server can reject anonymous callers.
+    const { data } = await supabase.auth.getSession();
+    headers.Authorization = `Bearer ${data.session?.access_token ?? supabaseAnonKey}`;
   }
 
   let response: Response;

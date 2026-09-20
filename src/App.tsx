@@ -7,12 +7,16 @@ import { Footer } from '@/components/layout/Footer';
 import { AskAiPage } from '@/pages/AskAiPage';
 import { FaqLibraryPage } from '@/pages/FaqLibraryPage';
 import { PlaygroundPage } from '@/pages/PlaygroundPage';
+import { AuthProvider } from '@/hooks/useAuth';
+import { AuthGate } from '@/components/auth/AuthGate';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ask' | 'library' | 'playground'>('ask');
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AuthGate>
       <div className="min-h-screen flex flex-col bg-slate-50/70">
         {/* Navigation Bar */}
         <Navbar activeTab={activeTab} onTabChange={(tab: any) => setActiveTab(tab)} />
@@ -30,6 +34,8 @@ export const App: React.FC = () => {
         {/* Footer */}
         <Footer />
       </div>
+        </AuthGate>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };
